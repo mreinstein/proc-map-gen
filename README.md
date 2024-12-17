@@ -19,18 +19,16 @@ CaveGenerator.connectCaves(c)
 
 ## debugging
 
-How to run the server through the chrome debugger.
-
 Open chrome://inspect in the browser
 
 Then:
-```bash
+```sh
 node --inspect index.js
 ```
 
 
 ## references
-This is a pretty direct port of https://github.com/AndyStobirski/RogueLike/blob/master/csCaveGenerator.cs
+This is a port of https://github.com/AndyStobirski/RogueLike/blob/master/csCaveGenerator.cs
 
 The original blog that talks about this is gone but you can still see an archived copy at https://web.archive.org/web/20211024235813/http://www.evilscience.co.uk/a-c-algorithm-to-build-roguelike-cave-systems-part-1/
 

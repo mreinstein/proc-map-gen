@@ -295,7 +295,7 @@ writePNG('cave_connected.png', c)
 
 
 // Attempt to connect the caves together
-function connectCaves (c) {
+export function connectCaves (c) {
     const { BreakOut, Caves, Corridors } = c
 
     if (Caves.length == 0)

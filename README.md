@@ -6,10 +6,14 @@ procedural map generation based on cellular automata
 
 
 Usage:
+
 ```javascript
-const c = ProcCaveGen.init()
-ProcCaveGen.Build(c)
-ProcCaveGen.ConnectCaves(c)
+import * as CaveGenerator from './index.js'
+
+
+const c = CaveGenerator.init()
+CaveGenerator.build(c)
+CaveGenerator.connectCaves(c)
 ```
 
 

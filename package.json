@@ -1,0 +1,19 @@
+{
+  "name": "proc-map-gen",
+  "type": "module",
+  "private": true,
+  "version": "1.0.0",
+  "description": "procedural map generation based on cellular automata",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@footgun/random-gap": "^0.2.0",
+    "alea": "^1.0.1",
+    "pngjs": "^7.0.0"
+  }
+}

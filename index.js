@@ -6,8 +6,6 @@ const seed = Math.random() //'0.6904424447426776' //Math.random()
 const rng = new Alea(seed)
 console.log('seed:', seed)
 
-// TODO: interactive cave building (web page)
-
 // https://web.archive.org/web/20211024235813/http://www.evilscience.co.uk/a-c-algorithm-to-build-roguelike-cave-systems-part-1/
 // https://web.archive.org/web/20190829183859/http://www.evilscience.co.uk/an-algorithm-to-build-roguelike-cave-systems-part-2/
 

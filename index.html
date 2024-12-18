@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title class="titleText">CaveBuilder Interactive Test</title>
+        <meta name="description" content="Prototyping procedural cave generation." />
+        <meta name="author" content="Michael Reinstein" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+
+        <style>
+            * {
+                font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light',
+                    'Helvetica Neue', Helvetica, Arial, 'Lucida Grande',
+                    sans-serif;
+                font-weight: 300;
+            }
+
+            body {
+                background-color: #333;
+                padding: 0;
+                margin: 0;
+                transition: opacity 0.27s;
+                overscroll-behavior: none;
+            }
+
+            body, img {
+                image-rendering: pixelated;
+                text-align: center;
+            }
+
+            img {
+                inline-size: 400px;
+                block-size: auto;
+            }
+
+        </style>
+    </head>
+
+    <body>
+
+        <img src="" />
+
+        <script type="importmap">
+          {
+            "imports": {
+              "@footgun/random-gap": "https://cdn.skypack.dev/@footgun/random-gap",
+              "alea": "https://cdn.skypack.dev/alea",
+              "dat.gui": "https://cdn.skypack.dev/dat.gui",
+              "pngjs/browser": "https://cdn.skypack.dev/pngjs/browser"
+            }
+          }
+        </script>
+    
+        <script type="module">
+        import * as CaveBuilder from './index.js'
+        import * as dat         from 'dat.gui'
+        import PNG              from 'pngjs/browser'
+
+
+        const gui = new dat.GUI()
+
+        const c = CaveBuilder.init()
+
+        // TODO: expose as many adjustable parameters as possible here, and a generate button
+        const folder = gui.addFolder('cavegen')
+        folder.add(c, 'Neighbours', 0, 8, 1)
+        folder.add({ generate: function () {
+            generate()
+        } }, 'generate')
+        folder.open()
+
+        console.log('har har', c)
+        generate()
+
+        function generate () {
+            const c = CaveBuilder.init()
+            CaveBuilder.build(c)
+            CaveBuilder.connectCaves(c)
+
+            function createPNG (c) {
+                const dst = new PNG.PNG({ width: c.MapSize[0], height: c.MapSize[1], filterType: 0, bgColor: { red: 255, green: 0, blue: 0, alpha: 255 } })
+
+                for (let cellIndex = 0; cellIndex < c.MapSize[0] * c.MapSize[1]; cellIndex++) {
+
+                    const col = cellIndex % c.MapSize[0]
+                    const row = Math.floor(cellIndex / c.MapSize[0])
+                    const k = `${col},${row}`
+
+                    const v = c.Map[k]
+                    const color = (v === 1) ? 255 : 0
+
+                    dst.data[cellIndex * 4] = color      // r channel
+                    dst.data[cellIndex * 4 + 1] = color  // g channel
+                    dst.data[cellIndex * 4 + 2] = color  // b channel
+                    dst.data[cellIndex * 4 + 3] = 255     // a channel
+                }
+
+                const buffer = PNG.PNG.sync.write(dst)
+                return btoa(String.fromCharCode.apply(null, buffer))
+            }
+
+            document.querySelector('img').src = `data:image/png;base64,` + createPNG(c)
+        }
+
+        </script>
+    </body>
+</html>

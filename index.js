@@ -1,7 +1,5 @@
-import Alea from 'alea'
+import Alea        from 'alea'
 import * as Random from '@footgun/random-gap'
-import fs          from 'node:fs'
-import { PNG }     from 'pngjs'
 
 
 const seed = Math.random() //'0.6904424447426776' //Math.random()
@@ -9,7 +7,6 @@ const rng = new Alea(seed)
 console.log('seed:', seed)
 
 // TODO: interactive cave building (web page)
-
 
 // https://web.archive.org/web/20211024235813/http://www.evilscience.co.uk/a-c-algorithm-to-build-roguelike-cave-systems-part-1/
 // https://web.archive.org/web/20190829183859/http://www.evilscience.co.uk/an-algorithm-to-build-roguelike-cave-systems-part-2/
@@ -68,7 +65,6 @@ export function init (opts={}) {
 
 
     	// corridor
-    	// 
 		CorridorSpace: 2,        // The distance a corridor has to be away from a closed cell for it to be built
     	Corridor_MaxTurns: 10,   // Maximum turns
 		Corridor_Min: 2,         // Minimum corridor length
@@ -96,16 +92,12 @@ function BuildCaves (c) {
 
 	const [ width, height ] = MapSize
 
-	//c.Map = new Array(c.MapSize[0] * c.MapSize[1])
-
     // go through each map cell and randomly determine whether to close it
     // the +5 offsets are to leave an empty border round the edge of the map
     for (let x = 0; x < width; x++)
         for (let y = 0; y < height; y++)
             if (Random.int(0, 99, rng) < CloseCellProb)
                 c.Map[`${x},${y}`] = 1
-
-    writePNG('cave_0.png', c)
 
     let cell
 
@@ -125,9 +117,6 @@ function BuildCaves (c) {
             Point_Set(c, cell, 0)
     }
 
-    writePNG('cave_1.png', c)
-
-
     //  Smooth off the rough cave edges and any single blocks by making several 
     //  passes on the map and removing any cells with 3 or more empty neighbours
     for (let ctr = 0; ctr < 5; ctr++) {
@@ -137,13 +126,10 @@ function BuildCaves (c) {
                 cell = [ x, y ]
 
                 if (Point_Get(c, cell) > 0)
-                	//if (Neighbours_Get(MapSize, cell).Where(n => Point_Get(c, n) == 0).Count() >= EmptyNeighbours)
                 	if (Neighbours_Get(MapSize, cell).filter((n) => Point_Get(c, n) === 0).length >= EmptyNeighbours)
                 		Point_Set(c, cell, 0)
             }
     }
-
-    writePNG('cave_2.png', c)
 
     //  fill in any empty cells that have 4 full neighbours
     //  to get rid of any holes in an cave
@@ -152,12 +138,9 @@ function BuildCaves (c) {
             cell = [ x, y ]
 
             if (Point_Get(c, cell) === 0)
-            	//if (Neighbours_Get(MapSize, cell).Where(n => Point_Get(c, n) == 1).Count() >= EmptyCellNeighbours)
             	if (Neighbours_Get(MapSize, cell).filter((n) => Point_Get(c, n) === 1).length >= EmptyCellNeighbours)
             		Point_Set(c, cell, 1)
         }
-
-    writePNG('cave_3.png', c)
 }
 
 
@@ -177,8 +160,7 @@ function GetCaves (c) {
 
             // if the cell is closed, and that cell doesn't occur in the list of caves..
             if (Point_Get(c, cell) > 0 && !Caves.find((s) => CaveContainsCell(s, cell))) {
-            //if (Point_Get(c, cell) > 0 && Caves.Count(s => s.Contains(cell)) == 0) {
-            
+    
                 const Cave = [ ]
 
                 // launch the recursive
@@ -196,8 +178,6 @@ function GetCaves (c) {
             }
         }
     }
-
-    writePNG('cave_4.png', c)
 }
 
 
@@ -215,20 +195,10 @@ function LocateCave (c, pCell, pCave) {
 
     for (const p of Neighbours_Get(c.MapSize, pCell)) {
         if (Point_Get(c, p) > 0 && !CaveContainsCell(pCave, p)) {
-            //pCave.push(p)
             pCave.push([ p[0], p[1] ]) // make a copy of the cell
             LocateCave(c, p, pCave) 
         }
     }
-
-    /*
-    foreach (Point p in Neighbours_Get(MapSize, pCell).Where(n => Point_Get(n) > 0)) {
-        if (!pCave.Contains(p)) {
-            pCave.Add(p)
-            LocateCave(c, p, pCave)
-        }
-    }
-    */
 }
 
 
@@ -238,10 +208,6 @@ function Neighbours_Get (MapSize, p)
 {
 	return Directions.map((d) => [ p[0] + d[0], p[1] + d[1] ])
 	                 .filter((tmp) => Point_Check(MapSize, tmp))
-	/*
-    return Directions.Select(d => new Point(p.X + d.X, p.Y + d.Y))
-            .Where(d => Point_Check(d)).ToList()
-    */
 }
 
 
@@ -251,12 +217,6 @@ function Neighbours_Get1 (MapSize, p)
 {
 	return Directions1.map((d) => [ p[0] + d[0], p[1] + d[1] ])
 	                  .filter((tmp) => Point_Check(MapSize, tmp))
-
-	/*
-    return Directions1.Select(d => [ p.X + d.X, p.Y + d.Y ])
-                      .Where(d => Point_Check(MapSize, d))
-                      .ToList()
-    */
 }
 
 
@@ -284,14 +244,6 @@ function Point_Set (c, p, val) {
 function Point_Get (c, p) {
     return c.Map[`${p[0]},${p[1]}`] || 0
 }
-
-
-const c = init()
-build(c)
-colorCaves(c)
-connectCaves(c)
-
-writePNG('cave_connected.png', c)
 
 
 // Attempt to connect the caves together
@@ -348,8 +300,6 @@ export function connectCaves (c) {
 
                 // check if the last point in the corridor list is in a cave
                 if (CaveContainsCell(Caves[ctr], potentialcorridor.at(-1))) {
-                //if (Caves[ctr].Contains(potentialcorridor.Last())) {
-
                     if (
                             currentcave === null // we've built off a corridor
                             || currentcave != Caves[ctr] // or built off a room
@@ -358,7 +308,6 @@ export function connectCaves (c) {
                         
                         // the last corridor point intrudes on the room, so remove it
                         potentialcorridor.pop()
-                        //potentialcorridor.Remove(potentialcorridor.Last());
 
                         // add the corridor to the corridor collection
                         c.Corridors = c.Corridors.concat(potentialcorridor)
@@ -383,7 +332,6 @@ export function connectCaves (c) {
     } while (Caves.length > 0);
 
     c.Caves = c.Caves.concat(ConnectedCaves)
-    //ConnectedCaves.length = 0
     return true
 }
 
@@ -421,7 +369,6 @@ function Corridor_Attempt (c, pStart, pDirection, pPreventBackTracking) {
             // make a point and offset it
             pStart[0] += pDirection[0]
             pStart[1] += pDirection[1]
-            //pStart.Offset(pDirection)
 
             if (Point_Check(c.MapSize, pStart) && Point_Get(c, pStart) === 1) {
                 lPotentialCorridor.push(clonePoint(pStart))
@@ -457,7 +404,6 @@ function Corridor_PointTest (c, pPoint, pDirection) {
 
     // -2, 5  -2, -1, 0, 1, 2
     for (let r=start; r<end; r++) {
-    //for (int r in Enumerable.Range(-CorridorSpace, 2 * CorridorSpace + 1).ToList()) {
         if (pDirection[0] === 0) { // north or south
             if (Point_Check(c.MapSize, [ pPoint[0] + r, pPoint[1] ]))
                 if (Point_Get(c, [ pPoint[0] + r, pPoint[1] ]) !== 0)
@@ -536,7 +482,6 @@ function Corridor_GetEdge (c, pLocation, pDirection) {
 
     pLocation[0] += pDirection[0]
     pLocation[1] += pDirection[1]
-    //pLocation.Offset(pDirection)
 }
 
 
@@ -549,121 +494,4 @@ function Direction_Get (p) {
     } while (newdir[0] !== -p[0] && newdir[1] !== -p[1])
 
     return newdir
-}
-
-
-/**
- * Generates an array of distinguishable random RGB colors.
- * @param {number} numColors - The number of colors to generate.
- * @returns {Array<string>} - An array of RGB strings like "rgb(255, 0, 0)".
- */
-function generateDistinctColors (numColors) {
-    const colors = [ ];
-    const step = Math.floor(360 / numColors); // Divide the hue range evenly.
-
-    for (let i = 0; i < numColors; i++) {
-        // Use evenly spaced hues, fixed saturation and lightness for contrast.
-        const h = (i * step) % 360; // Hue
-        const s = 70 + Math.random() * 10; // Saturation: 70-80%
-        const l = 50; // Lightness: 50% for good contrast
-        const rgb = hslToRgb(h, s / 100, l / 100);
-        colors.push(rgb);
-    }
-
-    return colors;
-}
-
-/**
- * Converts HSL color to RGB.
- * @param {number} h - Hue (0-360).
- * @param {number} s - Saturation (0-1).
- * @param {number} l - Lightness (0-1).
- * @returns {Object} - An object with r, g, b values (0-255).
- */
-function hslToRgb (h, s, l) {
-    const c = (1 - Math.abs(2 * l - 1)) * s; // Chroma
-    const x = c * (1 - Math.abs((h / 60) % 2 - 1)); // Secondary color
-    const m = l - c / 2;
-    let r = 0, g = 0, b = 0;
-
-    if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
-    else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
-    else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
-    else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
-    else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
-    else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
-
-    return {
-        r: Math.round((r + m) * 255),
-        g: Math.round((g + m) * 255),
-        b: Math.round((b + m) * 255)
-    };
-}
-
-
-function writePNG (filename, c) {
-    const dst = new PNG({ width: c.MapSize[0], height: c.MapSize[1], filterType: 0, bgColor: { red: 255, green: 0, blue: 0, alpha: 255 } })
-
-    for (let cellIndex = 0; cellIndex < c.MapSize[0] * c.MapSize[1]; cellIndex++) {
-
-        const col = cellIndex % c.MapSize[0]
-        const row = Math.floor(cellIndex / c.MapSize[0])
-        const k = `${col},${row}`
-
-        const v = c.Map[k]
-        const color = (v === 1) ? 255 : 0
-
-        dst.data[cellIndex * 4] = color      // r channel
-        dst.data[cellIndex * 4 + 1] = color  // g channel
-        dst.data[cellIndex * 4 + 2] = color  // b channel
-        dst.data[cellIndex * 4 + 3] = 255     // a channel
-    }
-
-    const buffer = PNG.sync.write(dst)
-    fs.writeFileSync(filename, buffer)
-}
-
-
-function colorCaves (c) {
-    const colors = generateDistinctColors(c.Caves.length)
-    
-    const dst = new PNG({ width: c.MapSize[0], height: c.MapSize[1], filterType: 0, bgColor: { red: 255, green: 0, blue: 0, alpha: 255 } })
-
-    const findCaveIndexForCell = function (col, row) {
-        const cell = [ col, row ]
-
-        for (let i=0; i < c.Caves.length; i++) {
-            if (CaveContainsCell(c.Caves[i], cell))
-                return i
-        }
-
-        return -1
-    }
-
-    for (let cellIndex = 0; cellIndex < c.MapSize[0] * c.MapSize[1]; cellIndex++) {
-
-        const col = cellIndex % c.MapSize[0]
-        const row = Math.floor(cellIndex / c.MapSize[0])
-
-        const caveIdx = findCaveIndexForCell(col, row)
-
-        if (caveIdx >= 0) {
-            dst.data[cellIndex * 4] = colors[caveIdx].r      // r channel
-            dst.data[cellIndex * 4 + 1] = colors[caveIdx].g  // g channel
-            dst.data[cellIndex * 4 + 2] = colors[caveIdx].b  // b channel
-
-        } else {
-            const color = (c.Map[`${col},${row}`] === 1) ? 255 : 0
-
-            dst.data[cellIndex * 4] = color      // r channel
-            dst.data[cellIndex * 4 + 1] = color  // g channel
-            dst.data[cellIndex * 4 + 2] = color  // b channel
-        }
-
-        dst.data[cellIndex * 4 + 3] = 255     // a channel
-
-    }
-
-    const buffer = PNG.sync.write(dst)
-    fs.writeFileSync('cave_colored.png', buffer)
 }

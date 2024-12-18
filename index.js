@@ -36,20 +36,20 @@ export function init (opts={}) {
 	return {
 		// cave generation
 		// The number of closed neighbours a cell must have in order to invert it's state
-		Neighbours: 4,
+		Neighbours: opts.Neighbors ?? 4,
 
 		// The number of times to visit cells
-	    Iterations: 50000,
+	    Iterations: opts.Iterations || 50000,
 
 	    // The probability of closing a visited cell
 	    // 55 tends to produce 1 cave, 40 few and small caves
-	    CloseCellProb: 45,
+	    CloseCellProb: opts.CloseCellProb ?? 45,
 
 	    // Remove rooms smaller than this value
-	    LowerLimit: 16,
+	    LowerLimit: opts.LowerLimit ?? 16,
 
 	    // Remove rooms larger than this value
-	    UpperLimit: 500,
+	    UpperLimit: opts.upperLimit ?? 500,
 
 	    // The size of the map [ width (columns), height (rows) ]
 		MapSize: [ 100, 100 ],
@@ -57,17 +57,17 @@ export function init (opts={}) {
 
 		// cave cleaning
 		// Removes single cells from cave edges: a cell with this number of empty neighbours is removed (smoothing)
-		EmptyNeighbours: 3,
+		EmptyNeighbours: opts.emptyNeighbors ?? 3,
 		// Fills in holes within caves: an open cell with this number closed neighbours is filled ( filling)
-    	EmptyCellNeighbours: 4,
+    	EmptyCellNeighbours: opts.EmptyCellNeighbours ?? 4,
 
 
     	// corridor
-		CorridorSpace: 2,        // The distance a corridor has to be away from a closed cell for it to be built
-    	Corridor_MaxTurns: 10,   // Maximum turns
-		Corridor_Min: 2,         // Minimum corridor length
-    	Corridor_Max: 5,         // Maximum corridor length
-		BreakOut: 100000,        // When this value is exceeded, stop attempting to connect caves. Prevents the algorithm from getting stuck.
+		CorridorSpace: opts.CorridorSpace ?? 2,        // The distance a corridor has to be away from a closed cell for it to be built
+    	Corridor_MaxTurns: opts.Corridor_MaxTurns ?? 10,   // Maximum turns
+		Corridor_Min: opts.Corridor_Min ?? 2,         // Minimum corridor length
+    	Corridor_Max: opts.Corridor_Max ?? 5,         // Maximum corridor length
+		BreakOut: opts.BreakOut ?? 100000,        // When this value is exceeded, stop attempting to connect caves. Prevents the algorithm from getting stuck.
 
 
 		Caves: [ ],     // Caves within the map are stored here
@@ -193,7 +193,7 @@ function LocateCave (c, pCell, pCave) {
 
     for (const p of Neighbours_Get(c.MapSize, pCell)) {
         if (Point_Get(c, p) > 0 && !CaveContainsCell(pCave, p)) {
-            pCave.push([ p[0], p[1] ]) // make a copy of the cell
+            pCave.push(p) // make a copy of the cell
             LocateCave(c, p, pCave) 
         }
     }

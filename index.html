@@ -63,21 +63,40 @@
 
         const gui = new dat.GUI()
 
-        const c = CaveBuilder.init()
+        const r = CaveBuilder.init()
 
-        // TODO: expose as many adjustable parameters as possible here, and a generate button
-        const folder = gui.addFolder('cavegen')
-        folder.add(c, 'Neighbours', 0, 8, 1)
+        const folder = gui.addFolder('settings')
+        const cavegen = folder.addFolder('cave generation')
+        cavegen.add(r, 'Neighbours', 0, 8, 1)
+        cavegen.add(r, 'Iterations', 1, 500000, 1)
+        cavegen.add(r, 'CloseCellProb', 0, 100)
+        cavegen.add(r, 'LowerLimit', 0)
+        cavegen.add(r, 'UpperLimit', 0)
+        // TODO: support map size
+        cavegen.open()
+
+        const caveclean = folder.addFolder('cave cleaning')
+        caveclean.add(r, 'EmptyNeighbours')
+        caveclean.add(r, 'EmptyCellNeighbours')
+        caveclean.open()
+
+        const corridor = folder.addFolder('corridor')
+        corridor.add(r, 'CorridorSpace')
+        corridor.add(r, 'Corridor_MaxTurns')
+        corridor.add(r, 'Corridor_Min')
+        corridor.add(r, 'Corridor_Max')
+        corridor.add(r, 'BreakOut', 1)
+        corridor.open()
+
         folder.add({ generate: function () {
             generate()
         } }, 'generate')
         folder.open()
 
-        console.log('har har', c)
         generate()
 
         function generate () {
-            const c = CaveBuilder.init()
+            const c = CaveBuilder.init(r)
             CaveBuilder.build(c)
             CaveBuilder.connectCaves(c)
 
@@ -104,6 +123,7 @@
             }
 
             document.querySelector('img').src = `data:image/png;base64,` + createPNG(c)
+            console.log('done')
         }
 
         </script>

@@ -16,6 +16,8 @@ CaveGenerator.build(c)
 CaveGenerator.connectCaves(c)
 ```
 
+To see an interactive demo of this running, open `index.html`.
+
 
 ## debugging
 

@@ -6,18 +6,22 @@ const seed = Math.random() //'0.6904424447426776' //Math.random()
 const rng = new Alea(seed)
 console.log('seed:', seed)
 
+
+// notes from his implementation:
+// 0 means open/empty, 1 means closed
+// 
 // https://web.archive.org/web/20211024235813/http://www.evilscience.co.uk/a-c-algorithm-to-build-roguelike-cave-systems-part-1/
 // https://web.archive.org/web/20190829183859/http://www.evilscience.co.uk/an-algorithm-to-build-roguelike-cave-systems-part-2/
 
 // Generic list of points which contain 4 directions      
-const Directions = [
+const Directions4 = [
     [ 0, -1 ],    //north
     [ 0, 1 ],    //south
     [ 1, 0 ],   //east
     [ -1, 0 ],  //west
 ]
 
-const Directions1 = [
+const Directions8 = [
     [ 0, -1 ],  //north
     [ 0, 1 ],   //south
     [ 1, 0 ],   //east
@@ -36,10 +40,10 @@ export function init (opts={}) {
 	return {
 		// cave generation
 		// The number of closed neighbours a cell must have in order to invert it's state
-		Neighbours: opts.Neighbors ?? 4,
+		Neighbours: opts.Neighbours ?? 4,
 
 		// The number of times to visit cells
-	    Iterations: opts.Iterations || 50000,
+	    Iterations: opts.Iterations || 50_000,
 
 	    // The probability of closing a visited cell
 	    // 55 tends to produce 1 cave, 40 few and small caves
@@ -49,7 +53,7 @@ export function init (opts={}) {
 	    LowerLimit: opts.LowerLimit ?? 16,
 
 	    // Remove rooms larger than this value
-	    UpperLimit: opts.upperLimit ?? 500,
+	    UpperLimit: opts.UpperLimit ?? 500,
 
 	    // The size of the map [ width (columns), height (rows) ]
 		MapSize: [ 100, 100 ],
@@ -57,8 +61,8 @@ export function init (opts={}) {
 
 		// cave cleaning
 		// Removes single cells from cave edges: a cell with this number of empty neighbours is removed (smoothing)
-		EmptyNeighbours: opts.emptyNeighbors ?? 3,
-		// Fills in holes within caves: an open cell with this number closed neighbours is filled ( filling)
+		EmptyNeighbours: opts.EmptyNeighbours ?? 3,
+		// Fills in holes within caves: an open cell with this number closed neighbours is filled (filling)
     	EmptyCellNeighbours: opts.EmptyCellNeighbours ?? 4,
 
 
@@ -67,7 +71,7 @@ export function init (opts={}) {
     	Corridor_MaxTurns: opts.Corridor_MaxTurns ?? 10,   // Maximum turns
 		Corridor_Min: opts.Corridor_Min ?? 2,         // Minimum corridor length
     	Corridor_Max: opts.Corridor_Max ?? 5,         // Maximum corridor length
-		BreakOut: opts.BreakOut ?? 100000,        // When this value is exceeded, stop attempting to connect caves. Prevents the algorithm from getting stuck.
+		BreakOut: opts.BreakOut ?? 100_000,        // When this value is exceeded, stop attempting to connect caves. Prevents the algorithm from getting stuck.
 
 
 		Caves: [ ],     // Caves within the map are stored here
@@ -91,11 +95,9 @@ function BuildCaves (c) {
 	const [ width, height ] = MapSize
 
     // go through each map cell and randomly determine whether to close it
-    // the +5 offsets are to leave an empty border round the edge of the map
     for (let x = 0; x < width; x++)
         for (let y = 0; y < height; y++)
-            if (Random.int(0, 99, rng) < CloseCellProb)
-                c.Map[`${x},${y}`] = 1
+            c.Map[`${x},${y}`] = (Random.int(0, 99, rng) < CloseCellProb) ? 1 : 0
 
     let cell
 
@@ -204,7 +206,7 @@ function LocateCave (c, pCell, pCave) {
 // using north, south, east, west
 function Neighbours_Get (MapSize, p)
 {
-	return Directions.map((d) => [ p[0] + d[0], p[1] + d[1] ])
+	return Directions4.map((d) => [ p[0] + d[0], p[1] + d[1] ])
 	                 .filter((tmp) => Point_Check(MapSize, tmp))
 }
 
@@ -213,7 +215,7 @@ function Neighbours_Get (MapSize, p)
 // using north, south, east, west, ne, nw, se, sw
 function Neighbours_Get1 (MapSize, p)
 {
-	return Directions1.map((d) => [ p[0] + d[0], p[1] + d[1] ])
+	return Directions8.map((d) => [ p[0] + d[0], p[1] + d[1] ])
 	                  .filter((tmp) => Point_Check(MapSize, tmp))
 }
 
@@ -343,7 +345,6 @@ function clonePoint (p) {
 /// <param name="pStart"></param>
 /// <param name="pDirection"></param>
 /// <param name="pPreventBackTracking"></param>
-/// <returns></returns>
 function Corridor_Attempt (c, pStart, pDirection, pPreventBackTracking) {
 
     const { Corridor_MaxTurns, Corridor_Min, Corridor_Max } = c
@@ -383,9 +384,9 @@ function Corridor_Attempt (c, pStart, pDirection, pPreventBackTracking) {
 
         if (pTurns > 1)
             if (!pPreventBackTracking)
-                pDirection = Direction_Get(pDirection)
+                pDirection = Direction_Get4(pDirection)
             else
-                pDirection = Direction_Get(pDirection, startdirection)
+                pDirection = Direction_Get4_Exclude(pDirection, startdirection)
     }
 
     return null
@@ -431,7 +432,7 @@ function Cave_GetEdge (c, pCave, pCavePoint, pDirection) {
         pCavePoint[0] = tmp[0]
         pCavePoint[1] = tmp[1]
 
-        tmp = Direction_Get(pDirection)
+        tmp = Direction_Get4(pDirection)
         pDirection[0] = tmp[0]
         pDirection[1] = tmp[1]
 
@@ -466,7 +467,7 @@ function Corridor_GetEdge (c, pLocation, pDirection) {
 
         // attempt to locate all the empy map points around the location
         // using the directions to offset the randomly chosen point
-        for (const p of Directions)
+        for (const p of Directions4)
             if (Point_Check(c.MapSize, [ pLocation[0] + p[0], pLocation[1] + p[1] ]))
                 if (Point_Get(c, [ pLocation[0] + p[0], pLocation[1] + p[1] ]) === 0)
                     validdirections.push(p)
@@ -485,11 +486,46 @@ function Corridor_GetEdge (c, pLocation, pDirection) {
 
 // Get a random direction, provided it isn't equal to the opposite one provided
 /// <param name="p"></param>
-function Direction_Get (p) {
+function Direction_Get4 (p) {
     let newdir
     do {
-        newdir = Directions[Random.int(0, Directions.length-1, rng)]
+        newdir = Directions4[Random.int(0, Directions4.length-1, rng)]
     } while (newdir[0] !== -p[0] && newdir[1] !== -p[1])
 
     return newdir
+}
+
+
+/// Get a random direction, excluding the provided directions and the opposite of 
+/// the provided direction to prevent a corridor going back on it's self.
+/// 
+/// The parameter pDirExclude is the first direction chosen for a corridor, and
+/// to prevent it from being used will prevent a corridor from going back on 
+/// it'self
+/// </summary>
+/// <param name="dir">Current direction</param>
+/// <param name="pDirectionList">Direction to exclude</param>
+/// <param name="pDirExclude">Direction to exclude</param>
+/// <returns></returns>
+function Direction_Get4_Exclude (pDir, pDirExclude) {
+    let NewDir
+
+    do {
+        NewDir = Directions4[Random.int(0, Directions4.length-1, rng)]
+    } while (
+                cellsEqual(Direction_Reverse(NewDir), pDir)
+                 || cellsEqual(Direction_Reverse(NewDir), pDirExclude)
+            )
+
+    return NewDir
+}
+
+
+function cellsEqual (c1, c2) {
+    return c1[0] === c2[0] && c1[1] === c2[1]
+}
+
+
+function Direction_Reverse(pDir) {
+    return [ -pDir[0], -pDir[1] ]
 }

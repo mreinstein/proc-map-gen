@@ -66,26 +66,44 @@
         const r = CaveBuilder.init()
 
         const folder = gui.addFolder('settings')
-        const cavegen = folder.addFolder('cave generation')
-        cavegen.add(r, 'Neighbours', 0, 8, 1)
-        cavegen.add(r, 'Iterations', 1, 500000, 1)
-        cavegen.add(r, 'CloseCellProb', 0, 100)
-        cavegen.add(r, 'LowerLimit', 0)
-        cavegen.add(r, 'UpperLimit', 0)
+        const cavegen = folder.addFolder('cave generation')//.domElement.title = `These settings affect the cave generation step.`
+        cavegen.add(r, 'Neighbours', 0, 8, 1).domElement.title = 
+            `Number of closed neighbours a cell must have in order to invert it's state`
+
+        cavegen.add(r, 'Iterations', 1, 200_000, 1).domElement.title = `Number of times to visit cells`
+
+        cavegen.add(r, 'CloseCellProb', 0, 99).domElement.title = `The % probability of closing a visited cell`
+        cavegen.add(r, 'LowerLimit', 0).domElement.title = `Remove caves smaller than this`
+        cavegen.add(r, 'UpperLimit', 0).domElement.title = `Remove caves larger than this`
+
         // TODO: support map size
         cavegen.open()
 
         const caveclean = folder.addFolder('cave cleaning')
-        caveclean.add(r, 'EmptyNeighbours')
-        caveclean.add(r, 'EmptyCellNeighbours')
+        let ctlr = caveclean.add(r, 'EmptyNeighbours', 0, 8, 1)
+        ctlr.domElement.title = `Removes single cells from cave edges: a cell with this number of empty neighbours is removed (smoothing)`
+
+        ctlr = caveclean.add(r, 'EmptyCellNeighbours', 0, 8, 1)
+        ctlr.domElement.title = `Fills in holes within caves: an open cell with this number closed neighbours is filled (filling)`
+
         caveclean.open()
 
         const corridor = folder.addFolder('corridor')
-        corridor.add(r, 'CorridorSpace')
-        corridor.add(r, 'Corridor_MaxTurns')
-        corridor.add(r, 'Corridor_Min')
-        corridor.add(r, 'Corridor_Max')
-        corridor.add(r, 'BreakOut', 1)
+        ctlr = corridor.add(r, 'CorridorSpace', 0)
+        ctlr.step(1)
+
+        ctlr = corridor.add(r, 'Corridor_MaxTurns', 0)
+        ctlr.step(1)
+
+        ctlr = corridor.add(r, 'Corridor_Min', 0)
+        ctlr.step(1)
+
+        ctlr = corridor.add(r, 'Corridor_Max', 0)
+        ctlr.step(1)
+
+        ctlr = corridor.add(r, 'BreakOut', 1)
+        ctlr.step(1)
+
         corridor.open()
 
         folder.add({ generate: function () {
@@ -123,7 +141,7 @@
             }
 
             document.querySelector('img').src = `data:image/png;base64,` + createPNG(c)
-            console.log('done')
+            //console.log('done')
         }
 
         </script>

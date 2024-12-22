@@ -1,3 +1,4 @@
 .DS_Store
 cave_*.png
 node_modules
+.vercel

@@ -25,15 +25,21 @@
                 margin: 0;
                 transition: opacity 0.27s;
                 overscroll-behavior: none;
+                inline-size: 100vw;
+                block-size: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
 
             body, img {
                 image-rendering: pixelated;
-                text-align: center;
+                display: flex;
+                align-content: center;
             }
 
             img {
-                inline-size: 400px;
+                inline-size: 80%;
                 block-size: auto;
             }
 
@@ -76,7 +82,9 @@
         cavegen.add(r, 'LowerLimit', 0).domElement.title = `Remove caves smaller than this`
         cavegen.add(r, 'UpperLimit', 0).domElement.title = `Remove caves larger than this`
 
-        // TODO: support map size
+        cavegen.add(r.MapSize, 'width', 1, 400)
+        cavegen.add(r.MapSize, 'height', 1, 400)
+
         cavegen.open()
 
         const caveclean = folder.addFolder('cave cleaning')
@@ -119,12 +127,12 @@
             CaveBuilder.connectCaves(c)
 
             function createPNG (c) {
-                const dst = new PNG.PNG({ width: c.MapSize[0], height: c.MapSize[1], filterType: 0, bgColor: { red: 255, green: 0, blue: 0, alpha: 255 } })
+                const dst = new PNG.PNG({ width: c.MapSize.width, height: c.MapSize.height, filterType: 0, bgColor: { red: 255, green: 0, blue: 0, alpha: 255 } })
 
-                for (let cellIndex = 0; cellIndex < c.MapSize[0] * c.MapSize[1]; cellIndex++) {
+                for (let cellIndex = 0; cellIndex < c.MapSize.width * c.MapSize.height; cellIndex++) {
 
-                    const col = cellIndex % c.MapSize[0]
-                    const row = Math.floor(cellIndex / c.MapSize[0])
+                    const col = cellIndex % c.MapSize.width
+                    const row = Math.floor(cellIndex / c.MapSize.width)
                     const k = `${col},${row}`
 
                     const v = c.Map[k]

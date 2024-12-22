@@ -53,11 +53,13 @@ export function init (opts={}) {
 	    LowerLimit: opts.LowerLimit ?? 16,
 
 	    // Remove rooms larger than this value
-	    UpperLimit: opts.UpperLimit ?? 500,
+	    UpperLimit: opts.UpperLimit ?? 9_999,
 
 	    // The size of the map [ width (columns), height (rows) ]
-		MapSize: [ 100, 100 ],
-
+        MapSize: opts.MapSize || {
+            width: 100,
+            height: 100,
+        },
 
 		// cave cleaning
 		// Removes single cells from cave edges: a cell with this number of empty neighbours is removed (smoothing)
@@ -92,7 +94,7 @@ export function build (c) {
 function BuildCaves (c) {
 	const { MapSize, Neighbours, CloseCellProb, Iterations, EmptyNeighbours, EmptyCellNeighbours } = c
 
-	const [ width, height ] = MapSize
+	const { width, height } = MapSize
 
     // go through each map cell and randomly determine whether to close it
     for (let x = 0; x < width; x++)
@@ -107,10 +109,10 @@ function BuildCaves (c) {
 
         // if the randomly selected cell has more closed neighbours than the property Neighbours
         // set it closed, else open it
-        const closedCells = Neighbours_Get1(MapSize, cell).filter((n) => Point_Get(c, n) === 1)
+        const closedCells = Neighbours_Get8(MapSize, cell).filter((n) => Point_Get(c, n) === 1)
                                                           .length
 
-        //if (Neighbours_Get1(MapSize, cell).Where(n => Point_Get(c, n) == 1).Count() > Neighbours)
+        //if (Neighbours_Get8(MapSize, cell).Where(n => Point_Get(c, n) == 1).Count() > Neighbours)
         if (closedCells > Neighbours)
             Point_Set(c, cell, 1)
         else
@@ -126,7 +128,7 @@ function BuildCaves (c) {
                 cell = [ x, y ]
 
                 if (Point_Get(c, cell) > 0)
-                	if (Neighbours_Get(MapSize, cell).filter((n) => Point_Get(c, n) === 0).length >= EmptyNeighbours)
+                	if (Neighbours_Get4(MapSize, cell).filter((n) => Point_Get(c, n) === 0).length >= EmptyNeighbours)
                 		Point_Set(c, cell, 0)
             }
     }
@@ -138,7 +140,7 @@ function BuildCaves (c) {
             cell = [ x, y ]
 
             if (Point_Get(c, cell) === 0)
-            	if (Neighbours_Get(MapSize, cell).filter((n) => Point_Get(c, n) === 1).length >= EmptyCellNeighbours)
+            	if (Neighbours_Get4(MapSize, cell).filter((n) => Point_Get(c, n) === 1).length >= EmptyCellNeighbours)
             		Point_Set(c, cell, 1)
         }
 }
@@ -147,7 +149,7 @@ function BuildCaves (c) {
 // Locate all the caves within the map and place each one into the generic list Caves
 function GetCaves (c) {
 	const { MapSize, Caves, LowerLimit, UpperLimit } = c
-	const [ width, height ] = MapSize
+	const { width, height } = MapSize
 
     Caves.length = 0
 
@@ -193,7 +195,7 @@ function CaveContainsCell (pCave, p) {
 /// <param name="pCave">List containing all the cells in the cave</param>
 function LocateCave (c, pCell, pCave) {
 
-    for (const p of Neighbours_Get(c.MapSize, pCell)) {
+    for (const p of Neighbours_Get4(c.MapSize, pCell)) {
         if (Point_Get(c, p) > 0 && !CaveContainsCell(pCave, p)) {
             pCave.push(p) // make a copy of the cell
             LocateCave(c, p, pCave) 
@@ -204,7 +206,7 @@ function LocateCave (c, pCell, pCave) {
 
 // return a list of the valid neighbouring cells of the provided point
 // using north, south, east, west
-function Neighbours_Get (MapSize, p)
+function Neighbours_Get4 (MapSize, p)
 {
 	return Directions4.map((d) => [ p[0] + d[0], p[1] + d[1] ])
 	                 .filter((tmp) => Point_Check(MapSize, tmp))
@@ -213,7 +215,7 @@ function Neighbours_Get (MapSize, p)
 
 // return a list of the valid neighbouring cells of the provided point
 // using north, south, east, west, ne, nw, se, sw
-function Neighbours_Get1 (MapSize, p)
+function Neighbours_Get8 (MapSize, p)
 {
 	return Directions8.map((d) => [ p[0] + d[0], p[1] + d[1] ])
 	                  .filter((tmp) => Point_Check(MapSize, tmp))
@@ -225,7 +227,7 @@ function Neighbours_Get1 (MapSize, p)
 // Check if the provided point is valid
 // @param Point p to check
 function Point_Check (MapSize, p) {
-	const [ width, height ] = MapSize
+	const { width, height } = MapSize
     return p[0] >= 0 & p[0] < width & p[1] >= 0 & p[1] < height
 }
 
@@ -352,7 +354,7 @@ function Corridor_Attempt (c, pStart, pDirection, pPreventBackTracking) {
     let lPotentialCorridor = [ clonePoint(pStart) ]
 
     let corridorlength = 0
-    const startdirection = [ pDirection[0], pDirection[1] ]
+    const startdirection = clonePoint(pDirection)
 
     let pTurns = Corridor_MaxTurns
     
@@ -526,6 +528,6 @@ function cellsEqual (c1, c2) {
 }
 
 
-function Direction_Reverse(pDir) {
+function Direction_Reverse (pDir) {
     return [ -pDir[0], -pDir[1] ]
 }
